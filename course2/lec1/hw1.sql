@@ -88,3 +88,49 @@ BEGIN
 END;
 
 --5--
+DECLARE
+    v_min_balance NUMBER;
+    v_max_balance NUMBER;
+    v_avg_balance NUMBER;
+BEGIN
+    SELECT
+        MIN(AVAIL_BALANCE),
+        MAX(AVAIL_BALANCE),
+        TRUNC(AVG(AVAIL_BALANCE),2)
+    INTO
+        v_min_balance,
+        v_max_balance,
+        v_avg_balance
+    FROM ACCOUNT;
+
+    DBMS_OUTPUT.PUT_LINE('Min Available Balance: ' || v_min_balance);
+    DBMS_OUTPUT.PUT_LINE('Max Available Balance: ' || v_max_balance);
+    DBMS_OUTPUT.PUT_LINE('Average Available Balance: ' || v_avg_balance);
+END;
+
+--6--
+DECLARE
+    TYPE EmployeeTableType IS TABLE OF VARCHAR2(100);
+    v_employee1 EmployeeTableType;
+    v_employee2 EmployeeTableType;
+BEGIN
+    SELECT EMP_ID || ' ' || FIRST_NAME || ' ' || ' ' || LAST_NAME
+    BULK COLLECT INTO v_employee1
+    FROM EMPLOYEE
+    WHERE EMP_ID > 4;
+
+    SELECT EMP_ID || ' ' || FIRST_NAME || ' ' || ' ' || LAST_NAME
+    BULK COLLECT INTO v_employee2
+    FROM EMPLOYEE
+    WHERE EMP_ID < 2;
+
+    v_employee1 := v_employee1 MULTISET UNION v_employee2;
+
+    DBMS_OUTPUT.PUT_LINE('Total Employees: ' || v_employee1.COUNT);
+    DBMS_OUTPUT.PUT_LINE('First Employee: ' || v_employee1.FIRST);
+    DBMS_OUTPUT.PUT_LINE('Last Employee: ' || v_employee1.LAST);
+
+    FOR i IN v_employee1.FIRST..v_employee1.LAST LOOP
+        DBMS_OUTPUT.PUT_LINE(v_employee1(i));
+    END LOOP;
+END;
