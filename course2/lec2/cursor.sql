@@ -99,4 +99,47 @@ END;
 
 
 --5--
-SELECT * FROM ETL_CUSTOMER
+CREATE TABLE ETL_CUSTOMER_T1 (
+    CUST_ID NUMBER,
+    SEGMENT VARCHAR2(20) NOT NULL,
+    ETL_DATE DATE NOT NULL
+);
+
+-- SELECT * FROM ETL_CUSTOMER_T1;
+
+DECLARE
+    CURSOR c_info IS
+        SELECT 
+            A.CUST_ID,
+            I.FIRST_NAME,
+            I.LAST_NAME,
+            SUM(AVAIL_BALANCE) AS AVLB_BALANCE          
+        FROM ACCOUNT A
+        JOIN CUSTOMER C ON A.CUST_ID = C.CUST_ID
+        JOIN INDIVIDUAL I ON I.CUST_ID = C.CUST_ID
+        WHERE C.STATE = 'MA'
+        GROUP BY I.FIRST_NAME, I.LAST_NAME, A.CUST_ID;
+
+    v_level VARCHAR2(20);
+    v_count NUMBER;
+
+BEGIN
+    FOR c IN c_info LOOP
+        IF c.AVLB_BALANCE <= 4000 THEN
+            v_level := 'Low';
+        ELSIF c.AVLB_BALANCE > 4000 AND c.AVLB_BALANCE <= 7000 THEN
+            v_level := 'Medium';
+        ELSE
+            v_level := 'High';
+        END IF;
+
+        INSERT INTO ETL_CUSTOMER_T1 VALUES(c.CUST_ID, v_level, SYSDATE);
+    END LOOP;
+        COMMIT;
+        SELECT COUNT(*) INTO v_count
+        FROM ETL_CUSTOMER_T1
+        WHERE ETL_DATE = TRUNC(SYSDATE);
+
+    DBMS_OUTPUT.PUT_LINE('Total rows insert: ' || v_count);
+    DBMS_OUTPUT.PUT_LINE('Finished: ' || SYSTIMESTAMP);
+END;
