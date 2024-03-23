@@ -1,0 +1,1 @@
+SELECT table_name from dba_tables;
